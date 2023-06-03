@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsEnum,
+  IsOptional,
   IsString,
   MaxLength,
   MinLength,
@@ -59,8 +60,10 @@ export default class CreateUserRequestDto {
   name: string;
 
   @IsEnum(UserRole)
+  @IsOptional()
   @ApiProperty({
     type: 'enum',
+    default: UserRole.Client,
     example: UserRole.Manager,
   })
   role: UserRole;
