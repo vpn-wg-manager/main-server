@@ -15,6 +15,8 @@ import { VpnController } from '@/vpn/vpn.controller';
 import { VpnService } from '@/vpn/vpn.service';
 import VpnRepository from '@/vpn/vpn.repository';
 import { HttpModule } from '@nestjs/axios';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TaskService } from './task/task.service';
 
 @Module({
   imports: [
@@ -24,6 +26,7 @@ import { HttpModule } from '@nestjs/axios';
     UsersModule,
     ServersModule,
     VpnModule,
+    ScheduleModule.forRoot(),
     HttpModule.register({
       timeout: 5000,
       maxRedirects: 5,
@@ -37,6 +40,7 @@ import { HttpModule } from '@nestjs/axios';
     ServersRepository,
     VpnService,
     VpnRepository,
+    TaskService,
   ],
 })
 export class AppModule {}
