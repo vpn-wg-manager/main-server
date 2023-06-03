@@ -9,6 +9,9 @@ export default class UserDto {
   @ApiProperty({ type: 'string', example: 'Jerry' })
   name: string;
 
+  // @ApiProperty({ type: 'string', example: '0.00' })
+  // balance: string;
+
   @ApiProperty({
     type: 'string',
     example: 'hellokitty@gmail.com',

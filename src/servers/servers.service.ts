@@ -1,42 +1,38 @@
-import { Injectable } from '@nestjs/common';
-import CreateServerRequest from '@/servers/Requests/CreateServer.request';
+import { Inject, Injectable } from '@nestjs/common';
 import ServersRepository from '@/servers/servers.repository';
 import GetServerByNameRequest from '@/servers/Requests/GetServerByName.request';
 import DeleteServerByNameRequest from '@/servers/Requests/DeleteServerByName.request';
+import { REQUEST } from '@nestjs/core';
+import { UserRole } from '@/users/constants';
+import CreateServerUseCase from '@/servers/UseCase/CreateServerUseCase';
+import DeleteServerByNameUseCase from '@/servers/UseCase/DeleteServerByNameUseCase';
+import GetServerByNameUseCase from '@/servers/UseCase/GetServerByNameUseCase';
+import GetServersUseCase from '@/servers/UseCase/GetServersUseCase';
 
 @Injectable()
 export class ServersService {
-  constructor(private serversRepository: ServersRepository) {}
+  constructor(
+    @Inject(REQUEST) private readonly req: any,
+    private serversRepository: ServersRepository,
+  ) {}
 
-  async createNewServer(request: CreateServerRequest) {
-    try {
-      return this.serversRepository.createServer(request.name, request.addr);
-    } catch (e) {
-      throw e;
-    }
+  async createNewServerUseCase() {
+    const userRole = this.req.user.role;
+    return new CreateServerUseCase(this.serversRepository, userRole);
   }
 
-  async getServerByName(request: GetServerByNameRequest) {
-    try {
-      return this.serversRepository.getServerByName(request.name);
-    } catch (e) {
-      throw e;
-    }
+  async getServerByNameUseCase() {
+    const userRole = this.req.user.role;
+    return new GetServerByNameUseCase(this.serversRepository, userRole);
   }
 
-  async deleteServerByName(request: DeleteServerByNameRequest) {
-    try {
-      return this.serversRepository.deleteServerByName(request.name);
-    } catch (e) {
-      throw e;
-    }
+  async deleteServerByNameUseCase() {
+    const userRole = this.req.user.role;
+    return new DeleteServerByNameUseCase(this.serversRepository, userRole);
   }
 
-  async getServers() {
-    try {
-      return this.serversRepository.getServers();
-    } catch (e) {
-      throw e;
-    }
+  async getServersUseCase() {
+    const userRole = this.req.user.role;
+    return new GetServersUseCase(this.serversRepository, userRole);
   }
 }

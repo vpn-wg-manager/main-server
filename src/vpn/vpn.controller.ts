@@ -9,6 +9,8 @@ import {
   Get,
   Put,
   Query,
+  Param,
+  UseFilters,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { VpnService } from '@/vpn/vpn.service';
@@ -19,6 +21,7 @@ import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import VpnMapper from '@/vpn/vpn.mapper';
 import UpdateVpnStatusRequestDto from '@/vpn/Dto/UpdateVpnStatusRequest.dto';
 import UpdateVpnStatusRequest from '@/vpn/Requests/UpdateVpnStatus.request';
+import { ErrorExceptionFilter } from '@/error-exception.filter';
 
 @Controller('vpn')
 @ApiTags('Vpn')
@@ -28,6 +31,7 @@ export class VpnController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Post()
+  @UseFilters(new ErrorExceptionFilter())
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiBody({ type: CreateVpnRequestDto })
   @ApiResponse({ type: VpnDto, isArray: true })
@@ -38,16 +42,19 @@ export class VpnController {
       body.count,
       body.prefix,
     );
-    const vpns = await this.vpnService.createNewVpns(request);
-    // return VpnMapper.domainsListToDto(servers);
+    const useCase = await this.vpnService.createNewVpnsUseCase();
+    const vpns = await useCase.do(request);
+    return VpnMapper.domainsListToDto(vpns);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @UseFilters(new ErrorExceptionFilter())
   @Get()
   @ApiResponse({ type: VpnDto, isArray: true })
-  async getVpnList(@Request() req: any) {
-    const vpns = await this.vpnService.getVpns();
+  async getVpnList() {
+    const useCase = await this.vpnService.getVpnsUseCase();
+    const vpns = await useCase.do();
     return VpnMapper.domainsListToDto(vpns);
   }
 
@@ -55,14 +62,20 @@ export class VpnController {
   @ApiBearerAuth()
   @Put('/:name/status')
   @UsePipes(new ValidationPipe({ transform: true }))
+  @UseFilters(new ErrorExceptionFilter())
   @ApiBody({ type: UpdateVpnStatusRequestDto })
   @ApiResponse({ type: VpnDto, isArray: true })
   async updateVpnStatus(
-    @Query('name') name: string,
+    @Param('name') name: string,
     @Body() body: UpdateVpnStatusRequestDto,
   ) {
-    const request = new UpdateVpnStatusRequest(name, body.status);
-    const vpn = await this.vpnService.updateVpnStatus(request);
+    const request = new UpdateVpnStatusRequest(
+      name,
+      body.status,
+      body.disabledDate,
+    );
+    const useCase = await this.vpnService.updateVpnStatusUseCase();
+    const vpn = await useCase.do(request);
     return VpnMapper.domainToDto(vpn);
   }
 }

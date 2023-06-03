@@ -8,6 +8,7 @@ export default class ServersMapper {
       id: orm.id,
       name: orm.name,
       addr: orm.addr,
+      maxUsers: orm.maxUsers,
       createdDate: orm.createdDate,
       updatedDate: orm.updatedDate,
     });
@@ -22,6 +23,7 @@ export default class ServersMapper {
       id: server.id,
       name: server.name,
       addr: server.addr,
+      maxUsers: server.maxUsers,
       createdDate: server.createdDate,
       updatedDate: server.updatedDate,
     };

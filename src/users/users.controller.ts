@@ -8,8 +8,10 @@ import {
   ValidationPipe,
   UseGuards,
   Request,
+  UseFilters,
+  Inject,
+  Put,
 } from '@nestjs/common';
-import { Request as ExpressRequest } from 'express';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import CreateUserRequest from '@/users/Requests/CreateUser.request';
@@ -22,6 +24,15 @@ import { LocalAuthGuard } from '@/auth/local-auth.guard';
 import SignInDto from '@/users/Dto/SignIn.dto';
 import { AuthService } from '@/auth/auth.service';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { ErrorExceptionFilter } from '@/error-exception.filter';
+import GetUserByEmailRequestDto from '@/users/Dto/GetUserByEmailRequest.dto';
+import GetUserByEmailRequest from '@/users/Requests/GetUserByEmail.request';
+import { REQUEST } from '@nestjs/core';
+import {
+  UpdateUserRoleRequestBodyDto,
+  UpdateUserRoleRequestPathDto,
+} from '@/users/Dto/UpdateUserRoleRequest.dto';
+import UpdateUserRoleRequest from '@/users/Requests/UpdateUserRole.request';
 
 @Controller('users')
 @ApiTags('Users')
@@ -29,9 +40,11 @@ export class UsersController {
   constructor(
     private usersService: UsersService,
     private authService: AuthService,
+    @Inject(REQUEST) private readonly req: any,
   ) {}
 
   @Post('createUser')
+  @UseFilters(new ErrorExceptionFilter())
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiBody({ type: CreateUserRequestDto })
   @ApiResponse({ type: UserDto })
@@ -43,7 +56,8 @@ export class UsersController {
       body.passRepeat,
       body.name,
     );
-    const user = await this.usersService.createNewUserUseCase(request);
+    const useCase = await this.usersService.createNewUserUseCase();
+    const user = await useCase.do(request);
     return UsersMapper.domainToDto(user);
   }
 
@@ -55,52 +69,60 @@ export class UsersController {
     return this.authService.signIn(req.user);
   }
 
-  // @Get()
-  // @ApiResponse({ type: [UserDto] })
-  // async getUsers() {
-  //   const useCase = this.usersService.getUsers();
-  //   const users = await useCase.do();
-  //   return UsersMapper.domainListToDto(users);
-  // }
-
-  // @Get('find')
-  // @UsePipes(new ValidationPipe({ transform: true }))
-  // @ApiResponse({ type: UserDto })
-  // async getUserByName(@Query() query: GetUserByNameRequestDto) {
-  //   const request = new GetUserByNameRequest(query.name);
-  //   const useCase = this.usersService.getUserByName();
-  //   const user = await useCase.do(request);
-  //   return UsersMapper.domainToDto(user);
-  // }
-
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @UseFilters(new ErrorExceptionFilter())
   @Get('/:id')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiResponse({ type: UserDto })
   async getUserById(@Param() path: GetUserByIdRequestDto) {
     const request = new GetUserByIdRequest(path.id);
-    const user = await this.usersService.getUserById(request);
+    const useCase = await this.usersService.getUserByIdUseCase();
+    const user = await useCase.do(request);
     return UsersMapper.domainToDto(user);
   }
 
-  // @Patch('/:id/edit')
-  // @UsePipes(new ValidationPipe({ transform: true }))
-  // @ApiBody({ type: EditUserRequestDto })
-  // @ApiResponse({ type: UserDto })
-  // async editUser(@Param('id') id: number, @Body() body: EditUserRequestDto) {
-  //   const request = new EditUserRequest(id, body.email, body.pass, body.name);
-  //   const useCase = this.usersService.editUser();
-  //   const user = await useCase.do(request);
-  //   return UsersMapper.domainToDto(user);
-  // }
-  //
-  // @Delete('/:id')
-  // @UsePipes(new ValidationPipe({ transform: true }))
-  // @ApiResponse({ type: String })
-  // async deleteUser(@Param('id') id: number) {
-  //   const request = new DeleteUserRequest(id);
-  //   const useCase = this.usersService.deleteUser();
-  //   return await useCase.do(request);
-  // }
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseFilters(new ErrorExceptionFilter())
+  @Get('/byEmail/:email')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @ApiResponse({ type: UserDto })
+  async getUserByEmail(@Param() path: GetUserByEmailRequestDto) {
+    const request = new GetUserByEmailRequest(path.email);
+    const useCase = await this.usersService.getUserByEmailUseCase();
+    const user = await useCase.do(request);
+    return UsersMapper.domainToDto(user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseFilters(new ErrorExceptionFilter())
+  @Get('/')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @ApiResponse({ type: UserDto })
+  async getUsers() {
+    const userRole = this.req.user.role;
+    const useCase = await this.usersService.getUsersUseCase(userRole);
+    const users = await useCase.do();
+    return UsersMapper.domainListToDto(users);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseFilters(new ErrorExceptionFilter())
+  @Put('/:id')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @ApiBody({ type: UpdateUserRoleRequestBodyDto })
+  @ApiResponse({ type: UserDto })
+  async updateUserRoleById(
+    @Param() path: UpdateUserRoleRequestPathDto,
+    @Body() body: UpdateUserRoleRequestBodyDto,
+  ) {
+    const userRole = this.req.user.role;
+    const request = new UpdateUserRoleRequest(body.role, path.id);
+    const useCase = await this.usersService.updateUserRoleUseCase(userRole);
+    const user = await useCase.do(request);
+    return UsersMapper.domainToDto(user);
+  }
 }

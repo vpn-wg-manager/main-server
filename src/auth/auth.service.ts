@@ -3,6 +3,7 @@ import { UsersService } from '@/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import UsersEntity from '@/users/users.entity';
 import GetUserByIdRequest from '@/users/Requests/GetUserById.request';
+import GetUserByEmailRequest from '@/users/Requests/GetUserByEmail.request';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +13,9 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.getUserByEmail(email);
+    const request = new GetUserByEmailRequest(email);
+    const useCase = await this.usersService.getUserByEmailUseCase();
+    const user = await useCase.do(request);
     if (user && user.validatePassword(pass)) {
       const { password, ...result } = user;
       return result;
@@ -29,7 +32,9 @@ export class AuthService {
 
   async getUserById(id: number): Promise<UsersEntity | undefined> {
     const request = new GetUserByIdRequest(id);
-    return this.usersService.getUserById(request);
+
+    const useCase = await this.usersService.getUserByIdUseCase();
+    return useCase.do(request);
   }
 
   async getUserByToken(token: any) {

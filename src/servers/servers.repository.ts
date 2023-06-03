@@ -9,10 +9,15 @@ import ServersMapper from '@/servers/servers.mapper';
 export default class ServersRepository implements IServersRepository {
   constructor(private readonly connection: Connection) {}
 
-  async createServer(name: string, addr: string): Promise<ServersEntity> {
+  async createServer(
+    name: string,
+    addr: string,
+    maxUsers: number,
+  ): Promise<ServersEntity> {
     const server = this.connection.manager.create(ServersOrm, {
       name,
       addr,
+      maxUsers,
       createdDate: new Date(),
       updatedDate: null,
     });
@@ -20,10 +25,10 @@ export default class ServersRepository implements IServersRepository {
     return ServersMapper.ormToDomain(server);
   }
 
-  async getServerByName(name: string): Promise<ServersEntity> {
+  async getServerBy(field: string, value: string): Promise<ServersEntity> {
     const server = await this.connection.manager.findOne(ServersOrm, {
       where: {
-        name,
+        [field]: value,
       },
     });
     if (server) {

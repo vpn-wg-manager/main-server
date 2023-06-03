@@ -1,4 +1,4 @@
-import { IsString, MaxLength } from 'class-validator';
+import { IsNumber, IsString, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export default class CreateServerRequestDto {
@@ -19,4 +19,11 @@ export default class CreateServerRequestDto {
     example: '255.255.255.255:12345',
   })
   addr: string;
+
+  @IsNumber()
+  @ApiProperty({
+    type: 'number',
+    example: '20',
+  })
+  maxUsers: number;
 }

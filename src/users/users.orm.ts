@@ -39,10 +39,17 @@ export default class UsersOrm extends BaseEntity {
     type: 'varchar',
     length: 20,
     nullable: false,
-    unique: true,
   })
   name: string | null;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.Manager })
+  @Column({
+    type: 'varchar',
+    length: 20,
+    nullable: false,
+    default: '0.00',
+  })
+  balance: string | null;
+
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.Client })
   role: UserRole;
 }

@@ -12,6 +12,7 @@ export default class UsersEntity extends BaseEntity<UsersEntity> {
   public phone: string;
   public password: string;
   public name: string;
+  public balance: string;
   public role: UserRole;
 
   setEmail(email: string) {

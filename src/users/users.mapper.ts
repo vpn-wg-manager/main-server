@@ -9,6 +9,7 @@ export default class UsersMapper {
       email: orm.email,
       phone: orm.phone,
       name: orm.name,
+      balance: orm.balance,
       password: orm.password,
       role: orm.role,
     });
@@ -28,6 +29,7 @@ export default class UsersMapper {
       email: user.email,
       phone: user.phone,
       name: user.name,
+      // balance: user.balance,
       role: user.role,
     };
   }

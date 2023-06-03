@@ -10,9 +10,18 @@ import VpnMapper from '@/vpn/vpn.mapper';
 export default class VpnRepository implements IVpnRepository {
   constructor(private readonly connection: Connection) {}
 
-  async createNewVpns(vpnsData: Partial<VpnEntity>[]): Promise<void> {
+  async createNewVpns(vpnsData: Partial<VpnEntity>[]): Promise<VpnEntity[]> {
     const vpns = VpnOrm.create(vpnsData);
-    await VpnOrm.insert(vpns);
+    const res = await VpnOrm.insert(vpns);
+    return VpnMapper.ormsListToDomain(res.generatedMaps as VpnOrm[]);
+  }
+
+  async totalVpnsOnAddr(addr: string) {
+    return this.connection.manager.count(VpnOrm, {
+      where: {
+        serverAddr: addr,
+      },
+    });
   }
 
   async getVpns(userId?: number): Promise<VpnEntity[]> {
@@ -37,9 +46,14 @@ export default class VpnRepository implements IVpnRepository {
     return VpnMapper.ormToDomain(vpn);
   }
 
-  async updateVpnStatus(name: string, status: VpnStatus): Promise<VpnEntity> {
+  async updateVpnStatus(
+    name: string,
+    status: VpnStatus,
+    disabledDate: Date,
+  ): Promise<VpnEntity> {
     const updated: Partial<VpnEntity> = {
       status,
+      disabledDate,
       updatedDate: new Date(),
     };
     if (status !== VpnStatus.WaitForApprove) {

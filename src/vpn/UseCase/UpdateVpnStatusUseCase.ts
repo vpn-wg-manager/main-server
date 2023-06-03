@@ -1,0 +1,87 @@
+import VpnRepository from '@/vpn/vpn.repository';
+import { UserRole } from '@/users/constants';
+import Error, { ErrorTypes } from '@/shared/Errors/Error';
+import UpdateVpnStatusRequest from '@/vpn/Requests/UpdateVpnStatus.request';
+import { RemoteVpnStatus, VpnStatus } from '@/vpn/constants';
+import * as dayjs from 'dayjs';
+import { HttpService } from '@nestjs/axios';
+
+export class UpdateVpnStatusUseCase {
+  constructor(
+    private readonly httpService: HttpService,
+    private vpnRepository: VpnRepository,
+    private userRole: UserRole,
+  ) {}
+
+  async do(request: UpdateVpnStatusRequest) {
+    try {
+      await this.validate(request);
+      // await this.updateRemote(request);
+      if (this.userRole === UserRole.SuperAdmin) {
+        return this.vpnRepository.updateVpnStatus(
+          request.name,
+          request.status,
+          request.disabledDate,
+        );
+      }
+      return this.vpnRepository.updateVpnStatus(
+        request.name,
+        request.status,
+        dayjs().add(1, 'month').toDate(),
+      );
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  async validate(request: UpdateVpnStatusRequest) {
+    if (![UserRole.SuperAdmin, UserRole.Manager].includes(this.userRole)) {
+      throw new Error(ErrorTypes.noPermission, 'role');
+    }
+
+    if (
+      this.userRole !== UserRole.SuperAdmin &&
+      request.status === VpnStatus.Disabled
+    ) {
+      throw new Error(ErrorTypes.noPermission, 'role', "You can't disable!");
+    }
+
+    if (this.userRole === UserRole.Manager && request.disabledDate) {
+      throw new Error(
+        ErrorTypes.noPermission,
+        'role',
+        'You cant specify disabled date!',
+      );
+    }
+
+    if (request.disabledDate && dayjs().isAfter(dayjs(request.disabledDate))) {
+      throw new Error(
+        ErrorTypes.wrongValue,
+        'disabledDate',
+        'Disabled date cant be less than the current date',
+      );
+    }
+  }
+
+  async updateRemote(request: UpdateVpnStatusRequest) {
+    const vpn = await this.vpnRepository.findVpnByName(request.name);
+    let action: RemoteVpnStatus | undefined;
+    if (request.status === VpnStatus.Approved) {
+      action = RemoteVpnStatus.Enabled;
+    }
+    if (request.status === VpnStatus.Disabled) {
+      action = RemoteVpnStatus.Disabled;
+    }
+    if (action) {
+      const res = await this.httpService.axiosRef.put(
+        `http://${vpn.serverAddr}/user`,
+        {
+          data: {
+            names: [vpn.name],
+            action,
+          },
+        },
+      );
+    }
+  }
+}

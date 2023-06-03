@@ -40,12 +40,11 @@ export default class UsersRepository implements IUsersRepository {
     }
   }
 
-  //
-  // async getUsers(): Promise<UsersEntity[]> {
-  //   const users = await this.connection.manager.find(UsersOrm);
-  //   return UsersMapper.ormListToDomain(users);
-  // }
-  //
+  async getUserCount(): Promise<number> {
+    const count = await UsersOrm.count();
+    return count || 0;
+  }
+
   async getUserById(id: number): Promise<UsersEntity> {
     const user = await this.connection.manager.findOne(UsersOrm, {
       where: {
@@ -56,51 +55,22 @@ export default class UsersRepository implements IUsersRepository {
       return UsersMapper.ormToDomain(user);
     }
   }
-  //
-  // async getUserByName(name: string): Promise<UsersEntity> {
-  //   const user = await this.connection.manager.findOne(UsersOrm, {
-  //     where: {
-  //       name,
-  //     },
-  //   });
-  //   if (user) {
-  //     return UsersMapper.ormToDomain(user);
-  //   }
-  // }
-  //
-  // async editUser(
-  //   id: UniqueIdentifier,
-  //   email?: string,
-  //   pass?: string,
-  //   name?: string,
-  // ): Promise<UsersEntity> {
-  //   const editable = nonNullable({
-  //     name,
-  //     email,
-  //     password: pass,
-  //   });
-  //   const edit = await this.connection.manager.update(
-  //     UsersOrm,
-  //     {
-  //       id,
-  //     },
-  //     editable,
-  //   );
-  //
-  //   if (edit.affected) {
-  //     return this.getUserById(id);
-  //   }
-  // }
-  //
-  // async deleteUser(id: UniqueIdentifier): Promise<DeleteUserResponseDto> {
-  //   const deletedUser = await this.connection.manager.update(
-  //     UsersOrm,
-  //     { id },
-  //     { deleted_at: new Date() },
-  //   );
-  //   if (deletedUser.affected) {
-  //     return { status: Operation.ok };
-  //   }
-  //   return { status: Operation.fail };
-  // }
+
+  async getUsers(): Promise<UsersEntity[]> {
+    const users = await this.connection.manager.find(UsersOrm);
+    if (users) {
+      return UsersMapper.ormListToDomain(users);
+    }
+  }
+
+  async updateUserRole(newRole: UserRole, id: number): Promise<UsersEntity> {
+    const update = await this.connection.manager.update(
+      UsersOrm,
+      { id },
+      { role: newRole },
+    );
+    if (update) {
+      return this.getUserById(id);
+    }
+  }
 }

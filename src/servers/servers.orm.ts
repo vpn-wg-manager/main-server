@@ -31,6 +31,12 @@ export default class ServersOrm extends BaseEntity {
   })
   addr: string;
 
+  @Column({
+    type: 'integer',
+    default: 20,
+  })
+  maxUsers: number;
+
   @CreateDateColumn({ type: 'timestamp without time zone' })
   createdDate: Date;
 

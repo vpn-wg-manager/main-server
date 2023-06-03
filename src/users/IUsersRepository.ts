@@ -10,18 +10,11 @@ export interface IUsersRepository {
     role: UserRole,
   ): Promise<UsersEntity>;
 
-  // getUsers(): Promise<UsersEntity[]>;
-  //
   getUserById(id: number): Promise<UsersEntity>;
-  //
-  // getUserByName(name: string): Promise<UsersEntity>;
-  //
-  // editUser(
-  //   id: UniqueIdentifier,
-  //   email?: string,
-  //   pass?: string,
-  //   name?: string,
-  // ): Promise<UsersEntity>;
-  //
-  // deleteUser(id: UniqueIdentifier): Promise<DeleteUserResponseDto>;
+
+  findByEmail(email: string): Promise<UsersEntity>;
+
+  getUserCount(): Promise<number>;
+
+  updateUserRole(newRole: UserRole, id: number): Promise<UsersEntity>;
 }
