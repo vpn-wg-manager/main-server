@@ -72,11 +72,25 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @UseFilters(new ErrorExceptionFilter())
-  @Get('/:id')
+  @Get('userById/:id')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiResponse({ type: UserDto })
   async getUserById(@Param() path: GetUserByIdRequestDto) {
     const request = new GetUserByIdRequest(path.id);
+    const useCase = await this.usersService.getUserByIdUseCase();
+    const user = await useCase.do(request);
+    return UsersMapper.domainToDto(user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseFilters(new ErrorExceptionFilter())
+  @Get('/current')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @ApiResponse({ type: UserDto })
+  async getCurrentUser() {
+    const userId = this.req.user.id;
+    const request = new GetUserByIdRequest(userId);
     const useCase = await this.usersService.getUserByIdUseCase();
     const user = await useCase.do(request);
     return UsersMapper.domainToDto(user);
@@ -111,7 +125,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @UseFilters(new ErrorExceptionFilter())
-  @Put('/:id')
+  @Put('userById/:id')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiBody({ type: UpdateUserRoleRequestBodyDto })
   @ApiResponse({ type: UserDto })
