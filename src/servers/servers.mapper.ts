@@ -24,6 +24,7 @@ export default class ServersMapper {
       name: server.name,
       addr: server.addr,
       maxUsers: server.maxUsers,
+      availableSlots: server.availableSlots,
       createdDate: server.createdDate,
       updatedDate: server.updatedDate,
     };

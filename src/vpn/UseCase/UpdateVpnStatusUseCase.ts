@@ -5,11 +5,14 @@ import UpdateVpnStatusRequest from '@/vpn/Requests/UpdateVpnStatus.request';
 import { RemoteVpnStatus, VpnStatus } from '@/vpn/constants';
 import * as dayjs from 'dayjs';
 import { HttpService } from '@nestjs/axios';
+import ServersRepository from '@/servers/servers.repository';
+import ServersEntity from '@/servers/servers.entity';
 
 export class UpdateVpnStatusUseCase {
   constructor(
     private readonly httpService: HttpService,
     private vpnRepository: VpnRepository,
+    private serversRepository: ServersRepository,
     private userRole: UserRole,
   ) {}
 
@@ -17,17 +20,36 @@ export class UpdateVpnStatusUseCase {
     try {
       await this.validate(request);
       // await this.updateRemote(request);
-      if (this.userRole === UserRole.SuperAdmin) {
+      let disabledDate = request.disabledDate;
+      if (this.userRole === UserRole.Manager || !request.disabledDate) {
+        disabledDate = dayjs().add(1, 'month').toDate();
+      }
+      if (request.status === VpnStatus.Approved) {
+        const vpn = await this.vpnRepository.findVpnByName(request.name);
+        const servers = await this.getServers();
+        if (
+          servers.find((el) => el.addr === vpn.serverAddr).availableSlots > 0
+        ) {
+          return this.vpnRepository.updateVpnStatus(
+            request.name,
+            request.status,
+            disabledDate,
+          );
+        }
+        const firstAvailableServerAddr = servers.find(
+          (el) => el.availableSlots > 0,
+        ).addr;
         return this.vpnRepository.updateVpnStatus(
           request.name,
           request.status,
-          request.disabledDate,
+          disabledDate,
+          firstAvailableServerAddr,
         );
       }
       return this.vpnRepository.updateVpnStatus(
         request.name,
         request.status,
-        dayjs().add(1, 'month').toDate(),
+        disabledDate,
       );
     } catch (e) {
       throw e;
@@ -83,5 +105,20 @@ export class UpdateVpnStatusUseCase {
         },
       );
     }
+  }
+
+  async getServers(): Promise<ServersEntity[]> {
+    const servers = await this.serversRepository.getServers();
+    const mappedServers = [];
+    for (const server of servers) {
+      const totalVpnsOnAddr = await this.vpnRepository.totalApprovedVpnsOnAddr(
+        server.addr,
+      );
+      mappedServers.push({
+        ...server,
+        availableSlots: server.maxUsers - totalVpnsOnAddr,
+      });
+    }
+    return mappedServers;
   }
 }

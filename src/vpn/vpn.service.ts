@@ -43,6 +43,7 @@ export class VpnService {
     return new UpdateVpnStatusUseCase(
       this.httpService,
       this.vpnRepository,
+      this.serverRepository,
       userRole,
     );
   }

@@ -31,6 +31,13 @@ export default class ServerDto {
   })
   maxUsers: number;
 
+  @IsNumber()
+  @ApiProperty({
+    type: 'number',
+    example: '20',
+  })
+  availableSlots: number;
+
   @IsDate()
   createdDate: Date;
 

@@ -1,10 +1,12 @@
 import ServersRepository from '@/servers/servers.repository';
 import { UserRole } from '@/users/constants';
 import Error, { ErrorTypes } from '@/shared/Errors/Error';
+import VpnRepository from '@/vpn/vpn.repository';
 
 export default class GetServersUseCase {
   constructor(
     private serversRepository: ServersRepository,
+    private vpnRepository: VpnRepository,
     private role: UserRole,
   ) {}
 
@@ -12,7 +14,16 @@ export default class GetServersUseCase {
     try {
       await this.validate();
       const servers = await this.serversRepository.getServers();
-      return servers;
+      const mappedServers = [];
+      for (const server of servers) {
+        const totalVpnsOnAddr =
+          await this.vpnRepository.totalApprovedVpnsOnAddr(server.addr);
+        mappedServers.push({
+          ...server,
+          availableSlots: server.maxUsers - totalVpnsOnAddr,
+        });
+      }
+      return mappedServers;
     } catch (e) {
       throw e;
     }

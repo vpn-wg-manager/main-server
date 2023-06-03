@@ -38,7 +38,7 @@ export class CreateVpnUseCase {
     if (this.userRole === UserRole.Client) {
       throw new Error(ErrorTypes.noPermission, 'role', 'No permission');
     }
-    const totalVpnsOnAddr = await this.vpnRepository.totalVpnsOnAddr(
+    const totalVpnsOnAddr = await this.vpnRepository.totalApprovedVpnsOnAddr(
       request.serverAddr,
     );
     const server = await this.serverRepository.getServerBy(

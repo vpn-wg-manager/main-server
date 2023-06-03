@@ -2,10 +2,12 @@ import ServersRepository from '@/servers/servers.repository';
 import { UserRole } from '@/users/constants';
 import Error, { ErrorTypes } from '@/shared/Errors/Error';
 import GetServerByNameRequest from '@/servers/Requests/GetServerByName.request';
+import VpnRepository from '@/vpn/vpn.repository';
 
 export default class GetServerByNameUseCase {
   constructor(
     private serversRepository: ServersRepository,
+    private vpnRepository: VpnRepository,
     private role: UserRole,
   ) {}
 
@@ -23,7 +25,13 @@ export default class GetServerByNameUseCase {
           'Server with such name not exists',
         );
       }
-      return serverByName;
+      const totalVpnsOnAddr = await this.vpnRepository.totalApprovedVpnsOnAddr(
+        serverByName.addr,
+      );
+      return {
+        ...serverByName,
+        availableSlots: serverByName.maxUsers - totalVpnsOnAddr,
+      };
     } catch (e) {
       throw e;
     }

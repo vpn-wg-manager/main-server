@@ -16,10 +16,11 @@ export default class VpnRepository implements IVpnRepository {
     return VpnMapper.ormsListToDomain(res.generatedMaps as VpnOrm[]);
   }
 
-  async totalVpnsOnAddr(addr: string) {
+  async totalApprovedVpnsOnAddr(addr: string) {
     return this.connection.manager.count(VpnOrm, {
       where: {
         serverAddr: addr,
+        status: VpnStatus.Approved,
       },
     });
   }
@@ -50,12 +51,16 @@ export default class VpnRepository implements IVpnRepository {
     name: string,
     status: VpnStatus,
     disabledDate: Date,
+    serverAddr?: string,
   ): Promise<VpnEntity> {
     const updated: Partial<VpnEntity> = {
       status,
       disabledDate,
       updatedDate: new Date(),
     };
+    if (serverAddr) {
+      updated.serverAddr = serverAddr;
+    }
     if (status !== VpnStatus.WaitForApprove) {
       updated.waitForApproveFromDate = null;
     } else {

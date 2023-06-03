@@ -8,12 +8,14 @@ import CreateServerUseCase from '@/servers/UseCase/CreateServerUseCase';
 import DeleteServerByNameUseCase from '@/servers/UseCase/DeleteServerByNameUseCase';
 import GetServerByNameUseCase from '@/servers/UseCase/GetServerByNameUseCase';
 import GetServersUseCase from '@/servers/UseCase/GetServersUseCase';
+import VpnRepository from '@/vpn/vpn.repository';
 
 @Injectable()
 export class ServersService {
   constructor(
     @Inject(REQUEST) private readonly req: any,
     private serversRepository: ServersRepository,
+    private vpnRepository: VpnRepository,
   ) {}
 
   async createNewServerUseCase() {
@@ -23,7 +25,11 @@ export class ServersService {
 
   async getServerByNameUseCase() {
     const userRole = this.req.user.role;
-    return new GetServerByNameUseCase(this.serversRepository, userRole);
+    return new GetServerByNameUseCase(
+      this.serversRepository,
+      this.vpnRepository,
+      userRole,
+    );
   }
 
   async deleteServerByNameUseCase() {
@@ -33,6 +39,10 @@ export class ServersService {
 
   async getServersUseCase() {
     const userRole = this.req.user.role;
-    return new GetServersUseCase(this.serversRepository, userRole);
+    return new GetServersUseCase(
+      this.serversRepository,
+      this.vpnRepository,
+      userRole,
+    );
   }
 }
