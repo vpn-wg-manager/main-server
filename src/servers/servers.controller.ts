@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Post,
   Query,
   UseFilters,
@@ -65,8 +66,8 @@ export class ServersController {
   @UseFilters(new ErrorExceptionFilter())
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiResponse({ type: Boolean })
-  async deleteServerByName(@Query() query: DeleteServerByNameRequestDto) {
-    const request = new DeleteServerByNameRequest(query.name);
+  async deleteServerByName(@Param() param: DeleteServerByNameRequestDto) {
+    const request = new DeleteServerByNameRequest(param.name);
     const useCase = await this.serversService.deleteServerByNameUseCase();
     const server = await useCase.do(request);
     return server;
