@@ -6,10 +6,15 @@ import GetUserByEmailUseCase from '@/users/UseCase/GetUserByEmailUseCase';
 import GetUsersUseCase from '@/users/UseCase/GetUsersUseCase';
 import UpdateUserRoleUseCase from '@/users/UseCase/UpdateUserRoleUseCase';
 import { UserRole } from '@/users/constants';
+import DeleteUserByIdUseCase from '@/users/UseCase/DeleteUserByIdUseCase';
+import VpnRepository from '@/vpn/vpn.repository';
 
 @Injectable()
 export class UsersService {
-  constructor(private userRepository: UsersRepository) {}
+  constructor(
+    private userRepository: UsersRepository,
+    private vpnRepository: VpnRepository,
+  ) {}
 
   async createNewUserUseCase() {
     return new CreateUserUseCase(this.userRepository);
@@ -17,6 +22,14 @@ export class UsersService {
 
   async getUserByIdUseCase() {
     return new GetUserByIdUseCase(this.userRepository);
+  }
+
+  async deleteUserByIdUseCase(userRole: UserRole) {
+    return new DeleteUserByIdUseCase(
+      this.userRepository,
+      this.vpnRepository,
+      userRole,
+    );
   }
 
   async getUserByEmailUseCase() {

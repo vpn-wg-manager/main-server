@@ -3,8 +3,10 @@ import UsersEntity from '@/users/users.entity';
 import UsersMapper from '@/users/users.mapper';
 import UsersOrm from '@/users/users.orm';
 import { IUsersRepository } from '@/users/IUsersRepository';
-import { Connection } from 'typeorm';
+import { Connection, FindManyOptions, Like } from 'typeorm';
 import { UserRole } from '@/users/constants';
+import ServersOrm from '@/servers/servers.orm';
+import { Page, PageParams } from '@/shared/types';
 
 @Injectable()
 export default class UsersRepository implements IUsersRepository {
@@ -56,11 +58,37 @@ export default class UsersRepository implements IUsersRepository {
     }
   }
 
-  async getUsers(): Promise<UsersEntity[]> {
-    const users = await this.connection.manager.find(UsersOrm);
-    if (users) {
-      return UsersMapper.ormListToDomain(users);
+  async deleteUserById(id: number): Promise<boolean> {
+    const user = await this.connection.manager.delete(UsersOrm, {
+      where: {
+        id,
+      },
+    });
+    if (user) {
+      return !!user.affected;
     }
+  }
+
+  async getUsers(params?: PageParams): Promise<Page<UsersEntity[]>> {
+    const take = params?.count || 10;
+    const skip = (params?.page - 1) * take || 0;
+    const query = params?.query || '';
+    const where = [
+      { email: Like('%' + query + '%') },
+      { phone: Like('%' + query + '%') },
+      { name: Like('%' + query + '%') },
+    ];
+    const paramsInner: FindManyOptions<UsersOrm> = {
+      where,
+      order: { name: 'DESC' },
+      take,
+      skip,
+    };
+    const [users, count] = await this.connection.manager.findAndCount(
+      UsersOrm,
+      paramsInner,
+    );
+    return { data: UsersMapper.ormListToDomain(users), count };
   }
 
   async updateUserRole(newRole: UserRole, id: number): Promise<UsersEntity> {

@@ -1,6 +1,7 @@
 import UsersRepository from '@/users/users.repository';
 import Error, { ErrorTypes } from '@/shared/Errors/Error';
 import { UserRole } from '@/users/constants';
+import GetUsersRequest from '@/users/Requests/GetUsers.request';
 
 export default class GetUsersUseCase {
   constructor(
@@ -8,15 +9,11 @@ export default class GetUsersUseCase {
     private userRole: string,
   ) {}
 
-  async do() {
+  async do(request: GetUsersRequest) {
     try {
       await this.validate();
-      const users = await this.userRepository.getUsers();
-      if (users.length) {
-        return users;
-      } else {
-        throw new Error(ErrorTypes.notExists, 'users', 'No users');
-      }
+      const users = await this.userRepository.getUsers(request);
+      return users;
     } catch (e) {
       throw new Error(ErrorTypes.notExists, 'users', 'No users');
     }

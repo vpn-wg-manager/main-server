@@ -23,6 +23,8 @@ import DeleteServerByNameRequest from '@/servers/Requests/DeleteServerByName.req
 import DeleteServerByNameRequestDto from '@/servers/Dto/DeleteServerByNameRequest.dto';
 import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 import { ErrorExceptionFilter } from '@/error-exception.filter';
+import GetServersRequestDto from '@/servers/Dto/GetServersRequest.dto';
+import GetServersRequest from '@/servers/Requests/GetServers.request';
 
 @Controller('servers')
 @ApiTags('Servers')
@@ -77,10 +79,15 @@ export class ServersController {
   @ApiBearerAuth()
   @Get()
   @UseFilters(new ErrorExceptionFilter())
+  @UsePipes(new ValidationPipe({ transform: true }))
   @ApiResponse({ type: ServerDto, isArray: true })
-  async getServersList() {
+  async getServersList(@Query() query: GetServersRequestDto) {
+    const request = new GetServersRequest(query.page, query.count, query.query);
     const useCase = await this.serversService.getServersUseCase();
-    const servers = await useCase.do();
-    return ServersMapper.domainsListToDto(servers);
+    const servers = await useCase.do(request);
+    return {
+      data: ServersMapper.domainsListToDto(servers.data),
+      count: servers.count,
+    };
   }
 }

@@ -34,7 +34,11 @@ export class ServersService {
 
   async deleteServerByNameUseCase() {
     const userRole = this.req.user.role;
-    return new DeleteServerByNameUseCase(this.serversRepository, userRole);
+    return new DeleteServerByNameUseCase(
+      this.serversRepository,
+      this.vpnRepository,
+      userRole,
+    );
   }
 
   async getServersUseCase() {

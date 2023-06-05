@@ -11,6 +11,7 @@ import {
   UseFilters,
   Inject,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
@@ -33,6 +34,10 @@ import {
   UpdateUserRoleRequestPathDto,
 } from '@/users/Dto/UpdateUserRoleRequest.dto';
 import UpdateUserRoleRequest from '@/users/Requests/UpdateUserRole.request';
+import DeleteUserByIdRequestDto from '@/users/Dto/DeleteUserByIdRequest.dto';
+import DeleteUserByIdRequest from '@/users/Requests/DeleteUserById.request';
+import GetUsersRequestDto from '@/users/Dto/GetUsersRequest.dto';
+import GetUsersRequest from '@/users/Requests/GetUsers.request';
 
 @Controller('users')
 @ApiTags('Users')
@@ -85,6 +90,20 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @UseFilters(new ErrorExceptionFilter())
+  @Get('userById/:id')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @ApiResponse({ type: UserDto })
+  async deleteUserById(@Param() path: DeleteUserByIdRequestDto) {
+    const userRole = this.req.user.role;
+    const request = new DeleteUserByIdRequest(path.id);
+    const useCase = await this.usersService.deleteUserByIdUseCase(userRole);
+    const user = await useCase.do(request);
+    return user;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseFilters(new ErrorExceptionFilter())
   @Get('/current')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiResponse({ type: UserDto })
@@ -115,11 +134,15 @@ export class UsersController {
   @Get('/')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiResponse({ type: UserDto })
-  async getUsers() {
+  async getUsers(@Query() query: GetUsersRequestDto) {
+    const request = new GetUsersRequest(query.page, query.count, query.query);
     const userRole = this.req.user.role;
     const useCase = await this.usersService.getUsersUseCase(userRole);
-    const users = await useCase.do();
-    return UsersMapper.domainListToDto(users);
+    const users = await useCase.do(request);
+    return {
+      data: UsersMapper.domainListToDto(users.data),
+      count: users.count,
+    };
   }
 
   @UseGuards(JwtAuthGuard)

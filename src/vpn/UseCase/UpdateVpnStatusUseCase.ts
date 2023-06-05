@@ -7,6 +7,7 @@ import * as dayjs from 'dayjs';
 import { HttpService } from '@nestjs/axios';
 import ServersRepository from '@/servers/servers.repository';
 import ServersEntity from '@/servers/servers.entity';
+import { Page } from '@/shared/types';
 
 export class UpdateVpnStatusUseCase {
   constructor(
@@ -110,7 +111,7 @@ export class UpdateVpnStatusUseCase {
   async getServers(): Promise<ServersEntity[]> {
     const servers = await this.serversRepository.getServers();
     const mappedServers = [];
-    for (const server of servers) {
+    for (const server of servers.data) {
       const totalVpnsOnAddr = await this.vpnRepository.totalApprovedVpnsOnAddr(
         server.addr,
       );

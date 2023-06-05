@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Connection } from 'typeorm';
+import { Connection, Equal, FindManyOptions, Like, Raw } from 'typeorm';
 import ServersOrm from '@/servers/servers.orm';
 import { IServersRepository } from '@/servers/IServersRepository';
 import ServersEntity from '@/servers/servers.entity';
 import ServersMapper from '@/servers/servers.mapper';
+import { Page, PageParams } from '@/shared/types';
 
 @Injectable()
 export default class ServersRepository implements IServersRepository {
@@ -45,10 +46,27 @@ export default class ServersRepository implements IServersRepository {
     }
   }
 
-  async getServers(): Promise<ServersEntity[]> {
-    const servers = await this.connection.manager.find(ServersOrm);
-    if (servers.length) {
-      return ServersMapper.ormsListToDomain(servers);
-    }
+  async getServers(params?: PageParams): Promise<Page<ServersEntity[]>> {
+    const take = params?.count || 10;
+    const skip = (params?.page - 1) * take || 0;
+    const query = params?.query || '';
+    const where = [
+      { name: Like('%' + query + '%') },
+      { addr: Like('%' + query + '%') },
+    ];
+    const paramsInner: FindManyOptions<ServersOrm> = {
+      where,
+      order: { name: 'DESC' },
+      take,
+      skip,
+    };
+    const [servers, count] = await this.connection.manager.findAndCount(
+      ServersOrm,
+      paramsInner,
+    );
+    return {
+      data: ServersMapper.ormsListToDomain(servers),
+      count,
+    };
   }
 }

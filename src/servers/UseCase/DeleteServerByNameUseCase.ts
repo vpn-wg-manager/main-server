@@ -2,16 +2,20 @@ import ServersRepository from '@/servers/servers.repository';
 import { UserRole } from '@/users/constants';
 import DeleteServerByNameRequest from '@/servers/Requests/DeleteServerByName.request';
 import Error, { ErrorTypes } from '@/shared/Errors/Error';
+import VpnRepository from '@/vpn/vpn.repository';
 
 export default class DeleteServerByNameUseCase {
+  serverAddr: string;
   constructor(
     private serversRepository: ServersRepository,
+    private vpnRepository: VpnRepository,
     private role: UserRole,
   ) {}
 
   async do(request: DeleteServerByNameRequest) {
     try {
       await this.validate(request);
+      await this.vpnRepository.deleteVpnByField('serverAddr', this.serverAddr);
       return this.serversRepository.deleteServerByName(request.name);
     } catch (e) {
       throw e;
@@ -36,6 +40,8 @@ export default class DeleteServerByNameUseCase {
         'name',
         'Server with such name not exists',
       );
+    } else {
+      this.serverAddr = serverByName.addr;
     }
   }
 }

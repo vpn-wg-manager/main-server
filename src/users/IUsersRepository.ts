@@ -12,6 +12,8 @@ export interface IUsersRepository {
 
   getUserById(id: number): Promise<UsersEntity>;
 
+  deleteUserById(id: number): Promise<boolean>;
+
   findByEmail(email: string): Promise<UsersEntity>;
 
   getUserCount(): Promise<number>;

@@ -2,6 +2,7 @@ import ServersRepository from '@/servers/servers.repository';
 import { UserRole } from '@/users/constants';
 import Error, { ErrorTypes } from '@/shared/Errors/Error';
 import VpnRepository from '@/vpn/vpn.repository';
+import GetServersRequest from '@/servers/Requests/GetServers.request';
 
 export default class GetServersUseCase {
   constructor(
@@ -10,12 +11,13 @@ export default class GetServersUseCase {
     private role: UserRole,
   ) {}
 
-  async do() {
+  async do(request: GetServersRequest) {
     try {
       await this.validate();
-      const servers = await this.serversRepository.getServers();
+
+      const servers = await this.serversRepository.getServers(request);
       const mappedServers = [];
-      for (const server of servers) {
+      for (const server of servers.data) {
         const totalVpnsOnAddr =
           await this.vpnRepository.totalApprovedVpnsOnAddr(server.addr);
         mappedServers.push({
@@ -23,7 +25,7 @@ export default class GetServersUseCase {
           availableSlots: server.maxUsers - totalVpnsOnAddr,
         });
       }
-      return mappedServers;
+      return { data: mappedServers, count: servers.count };
     } catch (e) {
       throw e;
     }

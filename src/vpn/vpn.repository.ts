@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import IVpnRepository from '@/vpn/IVpnRepository';
-import { Connection } from 'typeorm';
+import { Connection, FindManyOptions, Like } from 'typeorm';
 import VpnOrm from '@/vpn/vpn.orm';
 import { VpnStatus } from '@/vpn/constants';
 import VpnEntity from '@/vpn/vpn.entity';
 import VpnMapper from '@/vpn/vpn.mapper';
+
+import { Page, PageParams } from '@/shared/types';
+import { GetVpnsParams } from '@/vpn/vpn.types';
 
 @Injectable()
 export default class VpnRepository implements IVpnRepository {
@@ -25,17 +28,45 @@ export default class VpnRepository implements IVpnRepository {
     });
   }
 
-  async getVpns(userId?: number): Promise<VpnEntity[]> {
-    let params;
+  async totalApprovedVpns() {
+    return this.connection.manager.count(VpnOrm, {
+      where: {
+        status: VpnStatus.Approved,
+      },
+    });
+  }
+
+  async getVpns(
+    userId?: number,
+    params?: PageParams<GetVpnsParams>,
+  ): Promise<Page<VpnEntity[]>> {
+    const take = params?.count || 10;
+    const skip = (params?.page - 1) * take || 0;
+    const query = params?.query || '';
+    const where = [
+      { name: Like('%' + query + '%') },
+      { forUserEmail: Like('%' + query + '%') },
+    ];
+    const paramsInner: FindManyOptions<VpnOrm> = {
+      where,
+      order: { name: 'DESC' },
+      take,
+      skip,
+    };
     if (userId) {
-      params = {
-        where: {
-          createdByUserId: userId,
-        },
+      paramsInner.where = {
+        where,
+        createdByUserId: userId,
       };
     }
-    const vpns = await this.connection.manager.find(VpnOrm, params);
-    return VpnMapper.ormsListToDomain(vpns);
+    const [vpns, count] = await this.connection.manager.findAndCount(
+      VpnOrm,
+      paramsInner,
+    );
+    return {
+      data: VpnMapper.ormsListToDomain(vpns),
+      count,
+    };
   }
 
   async findVpnByName(name: string): Promise<VpnEntity> {
@@ -45,6 +76,16 @@ export default class VpnRepository implements IVpnRepository {
       },
     });
     return VpnMapper.ormToDomain(vpn);
+  }
+
+  async deleteVpnByField(
+    field: string,
+    value: string | number,
+  ): Promise<boolean> {
+    const deleted = await this.connection.manager.delete(VpnOrm, {
+      [field]: value,
+    });
+    return !!deleted?.affected;
   }
 
   async updateVpnStatus(

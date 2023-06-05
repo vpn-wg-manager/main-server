@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseFilters,
   UseGuards,
   UsePipes,
@@ -20,6 +21,8 @@ import VpnMapper from '@/vpn/vpn.mapper';
 import UpdateVpnStatusRequestDto from '@/vpn/Dto/UpdateVpnStatusRequest.dto';
 import UpdateVpnStatusRequest from '@/vpn/Requests/UpdateVpnStatus.request';
 import { ErrorExceptionFilter } from '@/error-exception.filter';
+import GetVpnsRequestDto from '@/vpn/Dto/GetVpnsRequest.dto';
+import GetVpnsRequest from '@/vpn/Requests/GetVpns.request';
 
 @Controller('vpn')
 @ApiTags('Vpn')
@@ -49,11 +52,13 @@ export class VpnController {
   @ApiBearerAuth()
   @UseFilters(new ErrorExceptionFilter())
   @Get()
+  @UsePipes(new ValidationPipe({ transform: true }))
   @ApiResponse({ type: VpnDto, isArray: true })
-  async getVpnList() {
+  async getVpnList(@Query() query: GetVpnsRequestDto) {
+    const request = new GetVpnsRequest(query.page, query.count, query.query);
     const useCase = await this.vpnService.getVpnsUseCase();
-    const vpns = await useCase.do();
-    return VpnMapper.domainsListToDto(vpns);
+    const vpns = await useCase.do(request);
+    return { data: VpnMapper.domainsListToDto(vpns.data), count: vpns.count };
   }
 
   @UseGuards(JwtAuthGuard)

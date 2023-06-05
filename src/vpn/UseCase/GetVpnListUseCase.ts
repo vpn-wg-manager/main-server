@@ -1,6 +1,7 @@
 import VpnRepository from '@/vpn/vpn.repository';
 import { UserRole } from '@/users/constants';
 import Error, { ErrorTypes } from '@/shared/Errors/Error';
+import GetVpnsRequest from '@/vpn/Requests/GetVpns.request';
 
 export class GetVpnListUseCase {
   constructor(
@@ -9,13 +10,13 @@ export class GetVpnListUseCase {
     private userId: number,
   ) {}
 
-  async do() {
+  async do(request: GetVpnsRequest) {
     try {
       await this.validate();
       if (this.userRole === UserRole.SuperAdmin) {
-        return this.vpnRepository.getVpns();
+        return this.vpnRepository.getVpns(undefined, request);
       } else if (this.userRole === UserRole.Manager) {
-        return this.vpnRepository.getVpns(this.userId);
+        return this.vpnRepository.getVpns(this.userId, request);
       }
     } catch (e) {
       throw e;
