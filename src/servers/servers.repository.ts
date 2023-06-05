@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Connection, Equal, FindManyOptions, Like, Raw } from 'typeorm';
+import { Connection, Equal, FindManyOptions, ILike, Like, Raw } from 'typeorm';
 import ServersOrm from '@/servers/servers.orm';
 import { IServersRepository } from '@/servers/IServersRepository';
 import ServersEntity from '@/servers/servers.entity';
@@ -49,10 +49,10 @@ export default class ServersRepository implements IServersRepository {
   async getServers(params?: PageParams): Promise<Page<ServersEntity[]>> {
     const take = params?.count || 10;
     const skip = (params?.page - 1) * take || 0;
-    const query = params?.query || '';
+    const query = params?.query?.toLowerCase().trim() || '';
     const where = [
-      { name: Like('%' + query + '%') },
-      { addr: Like('%' + query + '%') },
+      { name: ILike('%' + query + '%') },
+      { addr: ILike('%' + query + '%') },
     ];
     const paramsInner: FindManyOptions<ServersOrm> = {
       where,

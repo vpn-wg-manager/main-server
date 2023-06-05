@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import IVpnRepository from '@/vpn/IVpnRepository';
-import { Connection, FindManyOptions, Like } from 'typeorm';
+import { Connection, FindManyOptions, ILike, Like, Raw } from 'typeorm';
 import VpnOrm from '@/vpn/vpn.orm';
 import { VpnStatus } from '@/vpn/constants';
 import VpnEntity from '@/vpn/vpn.entity';
@@ -42,10 +42,10 @@ export default class VpnRepository implements IVpnRepository {
   ): Promise<Page<VpnEntity[]>> {
     const take = params?.count || 10;
     const skip = (params?.page - 1) * take || 0;
-    const query = params?.query || '';
+    const query = params?.query?.toLowerCase().trim() || '';
     const where = [
-      { name: Like('%' + query + '%') },
-      { forUserEmail: Like('%' + query + '%') },
+      { name: ILike('%' + query + '%') },
+      { forUserEmail: ILike('%' + query + '%') },
     ];
     const paramsInner: FindManyOptions<VpnOrm> = {
       where,
