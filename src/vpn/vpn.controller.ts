@@ -1,16 +1,14 @@
 import {
-  Request,
   Body,
   Controller,
+  Get,
+  Param,
   Post,
+  Put,
+  UseFilters,
+  UseGuards,
   UsePipes,
   ValidationPipe,
-  UseGuards,
-  Get,
-  Put,
-  Query,
-  Param,
-  UseFilters,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { VpnService } from '@/vpn/vpn.service';
