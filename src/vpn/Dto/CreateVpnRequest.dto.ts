@@ -44,11 +44,10 @@ export default class CreateVpnRequestDto {
   @IsString()
   @MaxLength(10)
   @IsOptional()
-  @IsNotEmpty()
   @ApiProperty({
     type: 'string',
     required: false,
-    default: null,
+    default: '',
     example: 'MyVpn',
   })
   prefix?: string;
