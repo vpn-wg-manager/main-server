@@ -60,13 +60,9 @@ export default class UsersRepository implements IUsersRepository {
 
   async deleteUserById(id: number): Promise<boolean> {
     const user = await this.connection.manager.delete(UsersOrm, {
-      where: {
-        id,
-      },
+      id,
     });
-    if (user) {
-      return !!user.affected;
-    }
+    return !!user;
   }
 
   async getUsers(params?: PageParams): Promise<Page<UsersEntity[]>> {

@@ -16,9 +16,6 @@ export default class DeleteUserByIdUseCase {
       await this.validate(request);
       await this.vpnRepository.deleteVpnByField('createdByUserId', request.id);
       const user = await this.userRepository.deleteUserById(request.id);
-      if (user) {
-        return true;
-      }
     } catch (e) {
       throw new Error(ErrorTypes.notExists, 'id', 'No such user');
     }

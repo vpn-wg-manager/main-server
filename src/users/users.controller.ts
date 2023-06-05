@@ -12,6 +12,7 @@ import {
   Inject,
   Put,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
@@ -90,7 +91,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @UseFilters(new ErrorExceptionFilter())
-  @Get('userById/:id')
+  @Delete('userById/:id')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiResponse({ type: UserDto })
   async deleteUserById(@Param() path: DeleteUserByIdRequestDto) {
