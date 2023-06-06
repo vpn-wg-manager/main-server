@@ -7,7 +7,6 @@ import * as dayjs from 'dayjs';
 import { HttpService } from '@nestjs/axios';
 import ServersRepository from '@/servers/servers.repository';
 import ServersEntity from '@/servers/servers.entity';
-import { Page } from '@/shared/types';
 
 export class UpdateVpnStatusUseCase {
   constructor(
@@ -36,16 +35,13 @@ export class UpdateVpnStatusUseCase {
             request.status,
             disabledDate,
           );
+        } else {
+          throw new Error(
+            ErrorTypes.noSlots,
+            'slots',
+            'There is no free slots on servers!',
+          );
         }
-        const firstAvailableServerAddr = servers.find(
-          (el) => el.availableSlots > 0,
-        ).addr;
-        return this.vpnRepository.updateVpnStatus(
-          request.name,
-          request.status,
-          disabledDate,
-          firstAvailableServerAddr,
-        );
       }
       return this.vpnRepository.updateVpnStatus(
         request.name,

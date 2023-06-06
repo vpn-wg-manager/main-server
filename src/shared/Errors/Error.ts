@@ -4,6 +4,7 @@ export enum ErrorTypes {
   notEqual = 'notEqual',
   notExists = 'notExists',
   noPermission = 'noPermission',
+  noSlots = 'noSlots',
   wrongValue = 'wrongValue',
 }
 
