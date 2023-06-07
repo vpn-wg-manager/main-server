@@ -15,6 +15,6 @@ module.exports = {
   synchronize: false,
   migrations: ['dist/**/migrations/*{.ts,.js}'],
   migrationsTableName: 'migrations_typeorm',
-  migrationsRun: false,
+  migrationsRun: true,
   timezone: 'Z',
 };
