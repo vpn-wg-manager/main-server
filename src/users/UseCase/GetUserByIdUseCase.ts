@@ -9,13 +9,9 @@ export default class GetUserByIdUseCase {
     try {
       await this.validate(request);
       const user = await this.userRepository.getUserById(request.id);
-      if (user) {
-        return user;
-      } else {
-        throw new Error(ErrorTypes.notExists, 'id', 'No such user');
-      }
+      return user || null;
     } catch (e) {
-      throw new Error(ErrorTypes.notExists, 'id', 'No such user');
+      throw e;
     }
   }
 
