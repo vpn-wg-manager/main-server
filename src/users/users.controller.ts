@@ -52,6 +52,7 @@ export class UsersController {
   @Post('createUser')
   @UseFilters(new ErrorExceptionFilter())
   @UsePipes(new ValidationPipe({ transform: true }))
+  @UseFilters(new ErrorExceptionFilter())
   @ApiBody({ type: CreateUserRequestDto })
   @ApiResponse({ type: UserDto })
   async createUser(@Body() body: CreateUserRequestDto) {
@@ -70,6 +71,7 @@ export class UsersController {
   @UseGuards(LocalAuthGuard)
   @Post('signIn')
   @ApiBody({ type: SignInDto })
+  @UseFilters(new ErrorExceptionFilter())
   @ApiResponse({ type: UserDto })
   async signIn(@Request() req: any) {
     return this.authService.signIn(req.user);
@@ -79,6 +81,7 @@ export class UsersController {
   @ApiBearerAuth()
   @UseFilters(new ErrorExceptionFilter())
   @Get('userById/:id')
+  @UseFilters(new ErrorExceptionFilter())
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiResponse({ type: UserDto })
   async getUserById(@Param() path: GetUserByIdRequestDto) {
