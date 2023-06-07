@@ -26,7 +26,7 @@ export class CreateVpnUseCase {
     try {
       await this.validate(request);
       const vpnsData: Partial<VpnEntity>[] = this.prepareData(request);
-      // const response = await this.sendToServer(request, vpnsData);
+      const response = await this.sendToServer(request, vpnsData);
       const result = await this.vpnRepository.createNewVpns(vpnsData);
       return result;
     } catch (e) {

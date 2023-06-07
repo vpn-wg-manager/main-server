@@ -19,7 +19,6 @@ export class UpdateVpnStatusUseCase {
   async do(request: UpdateVpnStatusRequest) {
     try {
       await this.validate(request);
-      // await this.updateRemote(request);
       let disabledDate = request.disabledDate;
       if (this.userRole === UserRole.Manager || !request.disabledDate) {
         disabledDate = dayjs().add(1, 'month').toDate();
@@ -30,6 +29,7 @@ export class UpdateVpnStatusUseCase {
         if (
           servers.find((el) => el.addr === vpn.serverAddr).availableSlots > 0
         ) {
+          await this.updateRemote(request);
           return this.vpnRepository.updateVpnStatus(
             request.name,
             request.status,
@@ -43,6 +43,7 @@ export class UpdateVpnStatusUseCase {
           );
         }
       }
+      await this.updateRemote(request);
       return this.vpnRepository.updateVpnStatus(
         request.name,
         request.status,

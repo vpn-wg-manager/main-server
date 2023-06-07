@@ -1,0 +1,38 @@
+version: '3.1'
+
+volumes:
+  pg_db:
+
+services:
+  api:
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      DB_HOST: pg_db
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      USER_PASS_SALT: ${USER_PASS_SALT}
+      JWT_SECRET: ${JWT_SECRET}
+      API_PORT: ${API_PORT}
+    ports:
+      - "2310:2310"
+    depends_on:
+      - pg_db
+
+  pg_db:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_HOST=${DB_HOST}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_PORT=${DB_PORT}
+    volumes:
+      - pg_db:/var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:5432
