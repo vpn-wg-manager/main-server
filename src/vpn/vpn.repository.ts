@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import IVpnRepository from '@/vpn/IVpnRepository';
-import { Connection, FindManyOptions, ILike, Like, Raw } from 'typeorm';
+import { Connection, Equal, FindManyOptions, ILike, Like, Raw } from 'typeorm';
 import VpnOrm from '@/vpn/vpn.orm';
 import { VpnStatus } from '@/vpn/constants';
 import VpnEntity from '@/vpn/vpn.entity';
@@ -46,6 +46,7 @@ export default class VpnRepository implements IVpnRepository {
     const where = [
       { name: ILike('%' + query + '%') },
       { forUserEmail: ILike('%' + query + '%') },
+      { createdByUserId: Equal(Number(query)) },
     ];
     const paramsInner: FindManyOptions<VpnOrm> = {
       where,
@@ -54,10 +55,10 @@ export default class VpnRepository implements IVpnRepository {
       skip,
     };
     if (userId) {
-      paramsInner.where = {
-        where,
-        createdByUserId: userId,
-      };
+      paramsInner.where = [
+        { name: ILike('%' + query + '%'), createdByUserId: userId },
+        { forUserEmail: ILike('%' + query + '%'), createdByUserId: userId },
+      ];
     }
     const [vpns, count] = await this.connection.manager.findAndCount(
       VpnOrm,

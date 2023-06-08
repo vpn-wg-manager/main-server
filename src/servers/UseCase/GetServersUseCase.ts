@@ -32,7 +32,7 @@ export default class GetServersUseCase {
   }
 
   async validate() {
-    if (this.role !== UserRole.SuperAdmin) {
+    if (![UserRole.SuperAdmin, UserRole.Manager].includes(this.role)) {
       throw new Error(ErrorTypes.noPermission, 'role', 'No permission');
     }
   }
