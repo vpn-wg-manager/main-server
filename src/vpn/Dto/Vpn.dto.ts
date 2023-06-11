@@ -8,15 +8,24 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { UniqueIdentifier } from '@/types';
 import { VpnStatus } from '@/vpn/constants';
+import UserDto from '@/users/Dto/User.dto';
 
 export default class VpnDto {
   @IsNumber()
   @ApiProperty({ type: 'number', example: 1 })
   id: UniqueIdentifier;
 
-  @IsNumber()
-  @ApiProperty({ type: 'number', example: 1 })
-  createdByUserId: number;
+  @ApiProperty({
+    type: UserDto,
+    example: {
+      id: 1,
+      email: 'hellokitty@gmail.com',
+      phone: '79353535355',
+      name: 'Jerry',
+      role: 'SuperAdmin',
+    },
+  })
+  user: UserDto;
 
   @IsString()
   @MaxLength(20)

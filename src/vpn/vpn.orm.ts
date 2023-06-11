@@ -4,18 +4,21 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { VpnStatus } from '@/vpn/constants';
+import UsersOrm from '@/users/users.orm';
 
 @Entity({ name: 'vpn' })
 export default class VpnOrm extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'integer', nullable: false })
-  createdByUserId: number;
+  @ManyToOne((type) => UsersOrm, (user) => user.vpns)
+  user: UsersOrm;
 
   @Index({ unique: true })
   @Column({

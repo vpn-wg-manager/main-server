@@ -9,6 +9,8 @@ import Error, { ErrorTypes } from '@/shared/Errors/Error';
 import { HttpService } from '@nestjs/axios';
 import { AxiosResponse } from 'axios';
 import ServersRepository from '@/servers/servers.repository';
+import VpnOrm from '@/vpn/vpn.orm';
+import UsersOrm from '@/users/users.orm';
 
 const nameMaxLength = 20;
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz');
@@ -25,8 +27,8 @@ export class CreateVpnUseCase {
   async do(request: CreateVpnRequest) {
     try {
       await this.validate(request);
-      const vpnsData: Partial<VpnEntity>[] = this.prepareData(request);
-      const response = await this.sendToServer(request, vpnsData);
+      const vpnsData: Partial<VpnOrm>[] = this.prepareData(request);
+      // const response = await this.sendToServer(request, vpnsData);
       const result = await this.vpnRepository.createNewVpns(vpnsData);
       return result;
     } catch (e) {
@@ -56,13 +58,15 @@ export class CreateVpnUseCase {
   }
 
   prepareData(request: CreateVpnRequest) {
-    const vpnsData: Partial<VpnEntity>[] = [];
+    const vpnsData: Partial<VpnOrm>[] = [];
     for (let i = 0; i < request.count; i++) {
       const name = `${request.prefix.replace(/[^A-Za-z]/gim, '')}${nanoid(
         nameMaxLength - request.prefix.length,
       )}`;
+      const user = new UsersOrm();
+      user.id = this.userId;
       vpnsData.push({
-        createdByUserId: this.userId,
+        user,
         name: capitalizeFirstLetter(name),
         serverAddr: request.serverAddr,
         forUserEmail: request.forUserEmail,

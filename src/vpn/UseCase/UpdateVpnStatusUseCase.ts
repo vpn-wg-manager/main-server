@@ -29,7 +29,7 @@ export class UpdateVpnStatusUseCase {
         if (
           servers.find((el) => el.addr === vpn.serverAddr).availableSlots > 0
         ) {
-          await this.updateRemote(request);
+          // await this.updateRemote(request);
           return this.vpnRepository.updateVpnStatus(
             request.name,
             request.status,
@@ -43,7 +43,7 @@ export class UpdateVpnStatusUseCase {
           );
         }
       }
-      await this.updateRemote(request);
+      // await this.updateRemote(request);
       return this.vpnRepository.updateVpnStatus(
         request.name,
         request.status,

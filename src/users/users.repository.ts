@@ -76,6 +76,7 @@ export default class UsersRepository implements IUsersRepository {
     ];
     const paramsInner: FindManyOptions<UsersOrm> = {
       where,
+      relations: ['vpns'],
       order: { name: 'DESC' },
       take,
       skip,

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import IVpnRepository from '@/vpn/IVpnRepository';
-import { Connection, Equal, FindManyOptions, ILike, Like, Raw } from 'typeorm';
+import { Connection, DeepPartial, FindManyOptions, ILike, In } from 'typeorm';
 import VpnOrm from '@/vpn/vpn.orm';
 import { VpnStatus } from '@/vpn/constants';
 import VpnEntity from '@/vpn/vpn.entity';
@@ -13,10 +13,10 @@ import { GetVpnsParams } from '@/vpn/vpn.types';
 export default class VpnRepository implements IVpnRepository {
   constructor(private readonly connection: Connection) {}
 
-  async createNewVpns(vpnsData: Partial<VpnEntity>[]): Promise<VpnEntity[]> {
+  async createNewVpns(vpnsData: DeepPartial<VpnOrm>[]): Promise<VpnEntity[]> {
     const vpns = VpnOrm.create(vpnsData);
     const res = await VpnOrm.insert(vpns);
-    return VpnMapper.ormsListToDomain(res.generatedMaps as VpnOrm[]);
+    return this.getVpnsByIds(res.generatedMaps.map((el) => el.id));
   }
 
   async totalApprovedVpnsOnAddr(addr: string) {
@@ -46,18 +46,18 @@ export default class VpnRepository implements IVpnRepository {
     const where = [
       { name: ILike('%' + query + '%') },
       { forUserEmail: ILike('%' + query + '%') },
-      { createdByUserId: Equal(Number(query)) },
     ];
     const paramsInner: FindManyOptions<VpnOrm> = {
       where,
-      order: { name: 'DESC' },
+      relations: ['user'],
+      order: { createdDate: 'ASC' },
       take,
       skip,
     };
     if (userId) {
       paramsInner.where = [
-        { name: ILike('%' + query + '%'), createdByUserId: userId },
-        { forUserEmail: ILike('%' + query + '%'), createdByUserId: userId },
+        { name: ILike('%' + query + '%'), user: { id: userId } },
+        { forUserEmail: ILike('%' + query + '%'), user: { id: userId } },
       ];
     }
     const [vpns, count] = await this.connection.manager.findAndCount(
@@ -68,6 +68,14 @@ export default class VpnRepository implements IVpnRepository {
       data: VpnMapper.ormsListToDomain(vpns),
       count,
     };
+  }
+
+  async getVpnsByIds(ids: number[]): Promise<VpnEntity[]> {
+    const vpns = await this.connection.manager.find(VpnOrm, {
+      relations: ['user'],
+      where: { id: In(ids) },
+    });
+    return VpnMapper.ormsListToDomain(vpns);
   }
 
   async findVpnByName(name: string): Promise<VpnEntity> {

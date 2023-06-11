@@ -1,6 +1,7 @@
 import UsersOrm from '@/users/users.orm';
 import UsersEntity from '@/users/users.entity';
 import UserDto from '@/users/Dto/User.dto';
+import { NonFunctionProperties } from '@/types';
 
 export default class UsersMapper {
   static ormToDomain(orm: UsersOrm): UsersEntity {
@@ -23,7 +24,9 @@ export default class UsersMapper {
     return res;
   }
 
-  static domainToDto(user: UsersEntity): UserDto {
+  static domainToDto(
+    user: UsersEntity | Partial<NonFunctionProperties<UsersEntity>>,
+  ): UserDto {
     return {
       id: user.id,
       email: user.email,

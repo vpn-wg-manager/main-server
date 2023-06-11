@@ -1,12 +1,13 @@
 import VpnOrm from '@/vpn/vpn.orm';
 import VpnEntity from '@/vpn/vpn.entity';
 import VpnDto from '@/vpn/Dto/Vpn.dto';
+import UsersMapper from '@/users/users.mapper';
 
 export default class VpnMapper {
   static ormToDomain(orm: VpnOrm): VpnEntity {
     return VpnEntity.new({
       id: orm.id,
-      createdByUserId: orm.createdByUserId,
+      user: orm.user,
       name: orm.name,
       serverAddr: orm.serverAddr,
       forUserEmail: orm.forUserEmail,
@@ -26,7 +27,7 @@ export default class VpnMapper {
   static domainToDto(vpn: VpnEntity): VpnDto {
     return {
       id: vpn.id,
-      createdByUserId: vpn.createdByUserId,
+      user: UsersMapper.domainToDto(vpn.user),
       name: vpn.name,
       serverAddr: vpn.serverAddr,
       forUserEmail: vpn.forUserEmail,

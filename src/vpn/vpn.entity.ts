@@ -1,9 +1,10 @@
-import BaseEntity from '@/types';
+import BaseEntity, { NonFunctionProperties } from '@/types';
 import { VpnStatus } from '@/vpn/constants';
+import UsersEntity from '@/users/users.entity';
 
 export default class VpnEntity extends BaseEntity<VpnEntity> {
   readonly id: number;
-  public createdByUserId: number;
+  public user: Partial<NonFunctionProperties<UsersEntity>>;
   public name: string;
   public serverAddr: string;
   public forUserEmail: string;

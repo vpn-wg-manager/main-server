@@ -1,13 +1,13 @@
 import {
   BaseEntity,
   Column,
-  CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { UserRole } from '@/users/constants';
+import VpnOrm from '@/vpn/vpn.orm';
 
 @Entity({ name: 'users' })
 export default class UsersOrm extends BaseEntity {
@@ -52,4 +52,7 @@ export default class UsersOrm extends BaseEntity {
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.Client })
   role: UserRole;
+
+  @OneToMany((type) => VpnOrm, (vpn) => vpn.user)
+  vpns: VpnOrm[];
 }
