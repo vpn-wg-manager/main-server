@@ -9,6 +9,7 @@ import VpnMapper from '@/vpn/vpn.mapper';
 import { Page, PageParams } from '@/shared/types';
 import { GetVpnsParams } from '@/vpn/vpn.types';
 import ServersOrm from '@/servers/servers.orm';
+import UsersOrm from '@/users/users.orm';
 
 @Injectable()
 export default class VpnRepository implements IVpnRepository {
@@ -93,7 +94,7 @@ export default class VpnRepository implements IVpnRepository {
 
   async deleteVpnByField(
     field: string,
-    value: string | number,
+    value: string | number | ServersOrm | UsersOrm,
   ): Promise<boolean> {
     const deleted = await this.connection.manager.delete(VpnOrm, {
       [field]: value,

@@ -10,6 +10,7 @@ import { UniqueIdentifier } from '@/types';
 import { VpnStatus } from '@/vpn/constants';
 import UserDto from '@/users/Dto/User.dto';
 import ServerDto from '@/servers/Dto/Server.dto';
+import { DeepPartial } from 'typeorm';
 
 export default class VpnDto {
   @IsNumber()
@@ -17,10 +18,10 @@ export default class VpnDto {
   id: UniqueIdentifier;
 
   @ApiProperty({
-    type: 'string',
-    example: 'Jerry',
+    type: UserDto,
+    example: { id: 1, name: 'Jerry' },
   })
-  userName: string;
+  user: DeepPartial<UserDto>;
 
   @IsString()
   @MaxLength(20)

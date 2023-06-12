@@ -29,7 +29,6 @@ export class UpdateVpnStatusUseCase {
         const vpn = await this.vpnRepository.findVpnByName(request.name);
         const { data: servers } = await this.serversRepository.getServers();
 
-        console.log('vpn', vpn);
         const currentServer = servers.find(
           (server) =>
             server.addr === vpn.server.addr && server.availableSlots > 0,

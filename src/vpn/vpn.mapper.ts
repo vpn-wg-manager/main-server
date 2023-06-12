@@ -26,9 +26,11 @@ export default class VpnMapper {
   }
 
   static domainToDto(vpn: VpnEntity): VpnDto {
+    const user = UsersMapper.domainToDto(vpn.user);
+    const partialUser = { name: user.name, id: user.id };
     return {
       id: vpn.id,
-      userName: UsersMapper.domainToDto(vpn.user).name,
+      user: partialUser,
       name: vpn.name,
       serverName: ServersMapper.domainToDto(vpn.server).name,
       forUserEmail: vpn.forUserEmail,

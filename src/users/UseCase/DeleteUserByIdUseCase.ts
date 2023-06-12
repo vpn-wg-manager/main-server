@@ -3,6 +3,7 @@ import Error, { ErrorTypes } from '@/shared/Errors/Error';
 import DeleteUserByIdRequest from '@/users/Requests/DeleteUserById.request';
 import { UserRole } from '@/users/constants';
 import VpnRepository from '@/vpn/vpn.repository';
+import UsersOrm from '@/users/users.orm';
 
 export default class DeleteUserByIdUseCase {
   constructor(
@@ -14,7 +15,9 @@ export default class DeleteUserByIdUseCase {
   async do(request: DeleteUserByIdRequest) {
     try {
       await this.validate(request);
-      await this.vpnRepository.deleteVpnByField('createdByUserId', request.id);
+      const userOrm = new UsersOrm();
+      userOrm.id = request.id;
+      await this.vpnRepository.deleteVpnByField('user', userOrm);
       const user = await this.userRepository.deleteUserById(request.id);
     } catch (e) {
       throw new Error(ErrorTypes.notExists, 'id', 'No such user');
