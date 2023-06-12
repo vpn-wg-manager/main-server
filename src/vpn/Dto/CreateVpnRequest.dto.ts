@@ -10,15 +10,6 @@ import {
 } from 'class-validator';
 
 export default class CreateVpnRequestDto {
-  @MaxLength(30)
-  @IsString()
-  @ApiProperty({
-    type: 'string',
-    maxLength: 30,
-    example: '255.255.255.255:12345',
-  })
-  serverAddr: string;
-
   @MaxLength(40)
   @IsString()
   @IsEmail()

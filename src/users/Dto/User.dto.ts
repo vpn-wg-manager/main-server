@@ -29,4 +29,10 @@ export default class UserDto {
     example: UserRole.Manager,
   })
   role: UserRole;
+
+  @ApiProperty({
+    type: 'integer',
+    example: 18,
+  })
+  totalVpnsInvites: number;
 }

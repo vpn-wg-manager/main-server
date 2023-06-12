@@ -14,6 +14,7 @@ export default class UsersEntity extends BaseEntity<UsersEntity> {
   public name: string;
   public balance: string;
   public role: UserRole;
+  public totalVpnsInvites: number;
 
   setEmail(email: string) {
     this.email = email;

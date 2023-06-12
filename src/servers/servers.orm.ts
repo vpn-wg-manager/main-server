@@ -1,12 +1,16 @@
 import {
+  AfterLoad,
   BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import VpnOrm from '@/vpn/vpn.orm';
+import { VpnStatus } from '@/vpn/constants';
 
 @Entity({ name: 'servers' })
 export default class ServersOrm extends BaseEntity {
@@ -42,4 +46,16 @@ export default class ServersOrm extends BaseEntity {
 
   @UpdateDateColumn({ type: 'timestamp without time zone', nullable: true })
   updatedDate: Date | null;
+
+  @OneToMany((type) => VpnOrm, (vpn) => vpn.server)
+  vpns: VpnOrm[];
+
+  availableSlots: number;
+
+  @AfterLoad()
+  setComputed() {
+    this.availableSlots =
+      this.maxUsers -
+      this.vpns?.filter((el) => el.status === VpnStatus.Approved).length;
+  }
 }

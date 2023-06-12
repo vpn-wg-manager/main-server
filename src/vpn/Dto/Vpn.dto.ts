@@ -9,6 +9,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { UniqueIdentifier } from '@/types';
 import { VpnStatus } from '@/vpn/constants';
 import UserDto from '@/users/Dto/User.dto';
+import ServerDto from '@/servers/Dto/Server.dto';
 
 export default class VpnDto {
   @IsNumber()
@@ -16,26 +17,18 @@ export default class VpnDto {
   id: UniqueIdentifier;
 
   @ApiProperty({
-    type: UserDto,
-    example: {
-      id: 1,
-      email: 'hellokitty@gmail.com',
-      phone: '79353535355',
-      name: 'Jerry',
-      role: 'SuperAdmin',
-    },
+    type: 'string',
+    example: 'Jerry',
   })
-  user: UserDto;
+  userName: string;
 
   @IsString()
   @MaxLength(20)
   @ApiProperty({ type: 'string', example: 'MyBestVpn' })
   name: string;
 
-  @IsString()
-  @MaxLength(30)
-  @ApiProperty({ type: 'string', example: '255.255.255.255:12345' })
-  serverAddr: string;
+  @ApiProperty({ type: 'string', example: 'Batman' })
+  serverName: string;
 
   @IsString()
   @MaxLength(40)

@@ -8,6 +8,7 @@ import VpnMapper from '@/vpn/vpn.mapper';
 
 import { Page, PageParams } from '@/shared/types';
 import { GetVpnsParams } from '@/vpn/vpn.types';
+import ServersOrm from '@/servers/servers.orm';
 
 @Injectable()
 export default class VpnRepository implements IVpnRepository {
@@ -21,8 +22,9 @@ export default class VpnRepository implements IVpnRepository {
 
   async totalApprovedVpnsOnAddr(addr: string) {
     return this.connection.manager.count(VpnOrm, {
+      relations: ['server'],
       where: {
-        serverAddr: addr,
+        server: { addr },
         status: VpnStatus.Approved,
       },
     });
@@ -46,11 +48,12 @@ export default class VpnRepository implements IVpnRepository {
     const where = [
       { name: ILike('%' + query + '%') },
       { forUserEmail: ILike('%' + query + '%') },
+      { user: { name: ILike('%' + query + '%') } },
     ];
     const paramsInner: FindManyOptions<VpnOrm> = {
       where,
-      relations: ['user'],
-      order: { createdDate: 'ASC' },
+      relations: ['user', 'server'],
+      order: { createdDate: 'DESC' },
       take,
       skip,
     };
@@ -72,7 +75,7 @@ export default class VpnRepository implements IVpnRepository {
 
   async getVpnsByIds(ids: number[]): Promise<VpnEntity[]> {
     const vpns = await this.connection.manager.find(VpnOrm, {
-      relations: ['user'],
+      relations: ['user', 'server'],
       where: { id: In(ids) },
     });
     return VpnMapper.ormsListToDomain(vpns);
@@ -80,6 +83,7 @@ export default class VpnRepository implements IVpnRepository {
 
   async findVpnByName(name: string): Promise<VpnEntity> {
     const vpn = await this.connection.manager.findOne(VpnOrm, {
+      relations: ['server', 'user'],
       where: {
         name,
       },
@@ -101,15 +105,17 @@ export default class VpnRepository implements IVpnRepository {
     name: string,
     status: VpnStatus,
     disabledDate: Date,
-    serverAddr?: string,
+    serverId?: number,
   ): Promise<VpnEntity> {
     const updated: Partial<VpnEntity> = {
       status,
       disabledDate,
       updatedDate: new Date(),
     };
-    if (serverAddr) {
-      updated.serverAddr = serverAddr;
+    if (serverId) {
+      const server = new ServersOrm();
+      server.id = serverId;
+      updated.server = server;
     }
     if (status !== VpnStatus.WaitForApprove) {
       updated.waitForApproveFromDate = null;

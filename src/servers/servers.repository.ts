@@ -5,6 +5,8 @@ import { IServersRepository } from '@/servers/IServersRepository';
 import ServersEntity from '@/servers/servers.entity';
 import ServersMapper from '@/servers/servers.mapper';
 import { Page, PageParams } from '@/shared/types';
+import VpnOrm from '@/vpn/vpn.orm';
+import UsersOrm from '@/users/users.orm';
 
 @Injectable()
 export default class ServersRepository implements IServersRepository {
@@ -28,6 +30,7 @@ export default class ServersRepository implements IServersRepository {
 
   async getServerBy(field: string, value: string): Promise<ServersEntity> {
     const server = await this.connection.manager.findOne(ServersOrm, {
+      relations: ['vpns'],
       where: {
         [field]: value,
       },
@@ -55,8 +58,9 @@ export default class ServersRepository implements IServersRepository {
       { addr: ILike('%' + query + '%') },
     ];
     const paramsInner: FindManyOptions<ServersOrm> = {
+      relations: ['vpns'],
       where,
-      order: { name: 'DESC' },
+      order: { createdDate: 'DESC' },
       take,
       skip,
     };

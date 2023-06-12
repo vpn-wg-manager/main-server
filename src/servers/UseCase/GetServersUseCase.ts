@@ -16,16 +16,7 @@ export default class GetServersUseCase {
       await this.validate();
 
       const servers = await this.serversRepository.getServers(request);
-      const mappedServers = [];
-      for (const server of servers.data) {
-        const totalVpnsOnAddr =
-          await this.vpnRepository.totalApprovedVpnsOnAddr(server.addr);
-        mappedServers.push({
-          ...server,
-          availableSlots: server.maxUsers - totalVpnsOnAddr,
-        });
-      }
-      return { data: mappedServers, count: servers.count };
+      return { data: servers.data, count: servers.count };
     } catch (e) {
       throw e;
     }

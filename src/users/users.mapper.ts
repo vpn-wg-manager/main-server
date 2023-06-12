@@ -13,6 +13,7 @@ export default class UsersMapper {
       balance: orm.balance,
       password: orm.password,
       role: orm.role,
+      totalVpnsInvites: orm.totalVpnsInvites,
     });
   }
 
@@ -34,6 +35,7 @@ export default class UsersMapper {
       name: user.name,
       // balance: user.balance,
       role: user.role,
+      totalVpnsInvites: user.totalVpnsInvites,
     };
   }
 

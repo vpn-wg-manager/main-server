@@ -1,6 +1,7 @@
 import ServersOrm from '@/servers/servers.orm';
 import ServersEntity from '@/servers/servers.entity';
 import ServerDto from '@/servers/Dto/Server.dto';
+import { NonFunctionProperties } from '@/types';
 
 export default class ServersMapper {
   static ormToDomain(orm: ServersOrm): ServersEntity {
@@ -9,6 +10,7 @@ export default class ServersMapper {
       name: orm.name,
       addr: orm.addr,
       maxUsers: orm.maxUsers,
+      availableSlots: orm.availableSlots,
       createdDate: orm.createdDate,
       updatedDate: orm.updatedDate,
     });
@@ -18,7 +20,9 @@ export default class ServersMapper {
     return list.map((orm) => ServersMapper.ormToDomain(orm));
   }
 
-  static domainToDto(server: ServersEntity): ServerDto {
+  static domainToDto(
+    server: ServersEntity | Partial<NonFunctionProperties<ServersEntity>>,
+  ): ServerDto {
     return {
       id: server.id,
       name: server.name,

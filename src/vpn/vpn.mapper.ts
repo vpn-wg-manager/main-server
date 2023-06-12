@@ -2,6 +2,7 @@ import VpnOrm from '@/vpn/vpn.orm';
 import VpnEntity from '@/vpn/vpn.entity';
 import VpnDto from '@/vpn/Dto/Vpn.dto';
 import UsersMapper from '@/users/users.mapper';
+import ServersMapper from '@/servers/servers.mapper';
 
 export default class VpnMapper {
   static ormToDomain(orm: VpnOrm): VpnEntity {
@@ -9,7 +10,7 @@ export default class VpnMapper {
       id: orm.id,
       user: orm.user,
       name: orm.name,
-      serverAddr: orm.serverAddr,
+      server: orm.server,
       forUserEmail: orm.forUserEmail,
       status: orm.status,
       approvedDate: orm.approvedDate,
@@ -27,9 +28,9 @@ export default class VpnMapper {
   static domainToDto(vpn: VpnEntity): VpnDto {
     return {
       id: vpn.id,
-      user: UsersMapper.domainToDto(vpn.user),
+      userName: UsersMapper.domainToDto(vpn.user).name,
       name: vpn.name,
-      serverAddr: vpn.serverAddr,
+      serverName: ServersMapper.domainToDto(vpn.server).name,
       forUserEmail: vpn.forUserEmail,
       status: vpn.status,
       approvedDate: vpn.approvedDate,

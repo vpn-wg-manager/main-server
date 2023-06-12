@@ -1,4 +1,5 @@
 import {
+  AfterLoad,
   BaseEntity,
   Column,
   Entity,
@@ -8,6 +9,7 @@ import {
 } from 'typeorm';
 import { UserRole } from '@/users/constants';
 import VpnOrm from '@/vpn/vpn.orm';
+import { VpnStatus } from '@/vpn/constants';
 
 @Entity({ name: 'users' })
 export default class UsersOrm extends BaseEntity {
@@ -55,4 +57,13 @@ export default class UsersOrm extends BaseEntity {
 
   @OneToMany((type) => VpnOrm, (vpn) => vpn.user)
   vpns: VpnOrm[];
+
+  totalVpnsInvites: number;
+
+  @AfterLoad()
+  setComputed() {
+    this.totalVpnsInvites = this.vpns?.filter(
+      (el) => el.status === VpnStatus.Approved,
+    ).length;
+  }
 }

@@ -38,7 +38,6 @@ export class VpnController {
   @ApiResponse({ type: VpnDto, isArray: true })
   async createVpn(@Body() body: CreateVpnRequestDto) {
     const request = new CreateVpnRequest(
-      body.serverAddr,
       body.forUserEmail,
       body.count,
       body.prefix,

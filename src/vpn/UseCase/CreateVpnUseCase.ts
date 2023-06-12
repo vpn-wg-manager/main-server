@@ -11,11 +11,15 @@ import { AxiosResponse } from 'axios';
 import ServersRepository from '@/servers/servers.repository';
 import VpnOrm from '@/vpn/vpn.orm';
 import UsersOrm from '@/users/users.orm';
+import ServersOrm from '@/servers/servers.orm';
+import ServersEntity from '@/servers/servers.entity';
 
 const nameMaxLength = 20;
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz');
 
 export class CreateVpnUseCase {
+  freeSpaceServer: ServersEntity;
+
   constructor(
     private vpnRepository: VpnRepository,
     private readonly httpService: HttpService,
@@ -27,7 +31,7 @@ export class CreateVpnUseCase {
   async do(request: CreateVpnRequest) {
     try {
       await this.validate(request);
-      const vpnsData: Partial<VpnOrm>[] = this.prepareData(request);
+      const vpnsData: Partial<VpnOrm>[] = await this.prepareData(request);
       // const response = await this.sendToServer(request, vpnsData);
       const result = await this.vpnRepository.createNewVpns(vpnsData);
       return result;
@@ -40,35 +44,28 @@ export class CreateVpnUseCase {
     if (this.userRole === UserRole.Client) {
       throw new Error(ErrorTypes.noPermission, 'role', 'No permission');
     }
-    const totalVpnsOnAddr = await this.vpnRepository.totalApprovedVpnsOnAddr(
-      request.serverAddr,
-    );
-    const server = await this.serverRepository.getServerBy(
-      'addr',
-      request.serverAddr,
-    );
-    const totalServerSlots = server.maxUsers;
-    if (totalServerSlots - totalVpnsOnAddr < request.count) {
-      throw new Error(
-        ErrorTypes.wrongValue,
-        'count',
-        'There are not so many empty slots',
-      );
-    }
   }
 
-  prepareData(request: CreateVpnRequest) {
+  async prepareData(request: CreateVpnRequest) {
     const vpnsData: Partial<VpnOrm>[] = [];
+    const { data: servers } = await this.serverRepository.getServers();
+    const freeSpaceServer = servers.find((server) => server.availableSlots > 0);
+    if (!freeSpaceServer) {
+      throw new Error(ErrorTypes.noSlots, 'server', 'Servers are full');
+    }
+    this.freeSpaceServer = freeSpaceServer;
     for (let i = 0; i < request.count; i++) {
       const name = `${request.prefix.replace(/[^A-Za-z]/gim, '')}${nanoid(
         nameMaxLength - request.prefix.length,
       )}`;
       const user = new UsersOrm();
       user.id = this.userId;
+      const server = new ServersOrm();
+      server.id = this.freeSpaceServer.id;
       vpnsData.push({
         user,
         name: capitalizeFirstLetter(name),
-        serverAddr: request.serverAddr,
+        server,
         forUserEmail: request.forUserEmail,
         status: VpnStatus.WaitForApprove,
         approvedDate: null,
@@ -90,7 +87,7 @@ export class CreateVpnUseCase {
       email: el.forUserEmail,
     }));
     const response = await this.httpService.axiosRef.post(
-      `http://${request.serverAddr}/user`,
+      `http://${this.freeSpaceServer.addr}/user`,
       {
         data,
       },

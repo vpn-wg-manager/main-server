@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { VpnStatus } from '@/vpn/constants';
 import UsersOrm from '@/users/users.orm';
+import ServersOrm from '@/servers/servers.orm';
 
 @Entity({ name: 'vpn' })
 export default class VpnOrm extends BaseEntity {
@@ -29,8 +30,8 @@ export default class VpnOrm extends BaseEntity {
   })
   name: string;
 
-  @Column({ type: 'varchar', length: 30, nullable: false })
-  serverAddr: string;
+  @ManyToOne((type) => ServersOrm, (server) => server.vpns)
+  server: ServersOrm;
 
   @Column({ type: 'varchar', length: 40, nullable: false })
   forUserEmail: string;

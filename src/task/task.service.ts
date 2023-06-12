@@ -10,7 +10,7 @@ import { GetVpnsParams } from '@/vpn/vpn.types';
 export class TaskService {
   constructor(private vpnRepository: VpnRepository) {}
 
-  @Cron('45 * * * * *')
+  @Cron('*/5 * * * * *')
   async handleCron() {
     const approvedVpnsCount = await this.vpnRepository.totalApprovedVpns();
 

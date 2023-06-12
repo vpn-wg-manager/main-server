@@ -9,6 +9,8 @@ import ServersRepository from '@/servers/servers.repository';
 import ServersEntity from '@/servers/servers.entity';
 
 export class UpdateVpnStatusUseCase {
+  freeSpaceServer: ServersEntity;
+
   constructor(
     private readonly httpService: HttpService,
     private vpnRepository: VpnRepository,
@@ -25,23 +27,32 @@ export class UpdateVpnStatusUseCase {
       }
       if (request.status === VpnStatus.Approved) {
         const vpn = await this.vpnRepository.findVpnByName(request.name);
-        const servers = await this.getServers();
-        if (
-          servers.find((el) => el.addr === vpn.serverAddr).availableSlots > 0
-        ) {
-          // await this.updateRemote(request);
-          return this.vpnRepository.updateVpnStatus(
-            request.name,
-            request.status,
-            disabledDate,
-          );
+        const { data: servers } = await this.serversRepository.getServers();
+
+        console.log('vpn', vpn);
+        const currentServer = servers.find(
+          (server) =>
+            server.addr === vpn.server.addr && server.availableSlots > 0,
+        );
+        if (currentServer) {
+          this.freeSpaceServer = currentServer;
         } else {
-          throw new Error(
-            ErrorTypes.noSlots,
-            'slots',
-            'There is no free slots on servers!',
+          const freeSpaceServer = servers.find(
+            (server) => server.availableSlots > 0,
           );
+          if (!freeSpaceServer) {
+            throw new Error(ErrorTypes.noSlots, 'server', 'Servers are full');
+          }
+          this.freeSpaceServer = freeSpaceServer;
         }
+
+        // await this.updateRemote(request);
+        return this.vpnRepository.updateVpnStatus(
+          request.name,
+          request.status,
+          disabledDate,
+          this.freeSpaceServer.id,
+        );
       }
       // await this.updateRemote(request);
       return this.vpnRepository.updateVpnStatus(
@@ -94,7 +105,7 @@ export class UpdateVpnStatusUseCase {
     }
     if (action) {
       const res = await this.httpService.axiosRef.put(
-        `http://${vpn.serverAddr}/user`,
+        `http://${this.freeSpaceServer.addr}/user`,
         {
           data: {
             names: [vpn.name],
@@ -103,20 +114,5 @@ export class UpdateVpnStatusUseCase {
         },
       );
     }
-  }
-
-  async getServers(): Promise<ServersEntity[]> {
-    const servers = await this.serversRepository.getServers();
-    const mappedServers = [];
-    for (const server of servers.data) {
-      const totalVpnsOnAddr = await this.vpnRepository.totalApprovedVpnsOnAddr(
-        server.addr,
-      );
-      mappedServers.push({
-        ...server,
-        availableSlots: server.maxUsers - totalVpnsOnAddr,
-      });
-    }
-    return mappedServers;
   }
 }
